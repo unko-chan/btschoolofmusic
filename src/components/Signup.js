@@ -1,28 +1,37 @@
 import React, { useRef, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Signup() {
   const emailRef = useRef();
   const passwordRef = useRef();
   const passwordConfirmRef = useRef();
-  const { signup } = useAuth();
+  const { signup, login } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const validPassword =
-      passwordRef.current.value === passwordConfirmRef.current.value;
+    const invalidPassword =
+      passwordRef.current.value !== passwordConfirmRef.current.value;
 
-    if (!validPassword) {
+    if (invalidPassword) {
       return setError("Passwords do not match");
     }
     try {
       setError("");
       setLoading(true);
       await signup(emailRef.current.value, passwordRef.current.value);
+      try {
+        setError("");
+        setLoading(true);
+        await login(emailRef.current.value, passwordRef.current.value);
+        navigate("/");
+      } catch {
+        setError("Failed to login to account");
+      }
     } catch {
       setError("Failed to create an account");
     }
